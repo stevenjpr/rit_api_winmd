@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <!-- Link against the import library -->
+  <ItemDefinitionGroup Condition="'$(Platform)' == 'x64' Or '$(Platform)' == 'ARM64'">
+    <Link>
+      <AdditionalLibraryDirectories>$(WdRemoteApiLibDir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>wdremoteapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+
+  <!-- Copy DLL to output directory -->
+  <Target Name="WdRemoteApiCopyBinaries" AfterTargets="Build" Condition="'$(Platform)' == 'x64' Or '$(Platform)' == 'ARM64'">
+    <Copy SourceFiles="$(WdRemoteApiBinDir)wdremoteapi.dll"
+          DestinationFolder="$(OutDir)"
+          SkipUnchangedFiles="true" />
+  </Target>
+
+</Project>

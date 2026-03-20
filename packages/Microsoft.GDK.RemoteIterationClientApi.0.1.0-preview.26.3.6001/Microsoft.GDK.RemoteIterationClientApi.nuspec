@@ -1,0 +1,18 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2011/10/nuspec.xsd">
+  <metadata>
+    <id>Microsoft.GDK.RemoteIterationClientApi</id>
+    <version>0.1.0-preview.26.3.6001</version>
+    <title>Microsoft GDK Remote Iteration Client API</title>
+    <authors>Microsoft</authors>
+    <owners>Microsoft</owners>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <license type="expression">MIT</license>
+    <licenseUrl>https://licenses.nuget.org/MIT</licenseUrl>
+    <readme>README.md</readme>
+    <projectUrl>https://aka.ms/gdkdocs</projectUrl>
+    <description>Remote Windows Development API for Xbox PC Gaming Device Tools</description>
+    <copyright>© Microsoft Corporation. All rights reserved.</copyright>
+    <tags>Microsoft Gaming RemoteDebugging RemoteIteration Cpp Windows Xbox Handheld</tags>
+  </metadata>
+</package>

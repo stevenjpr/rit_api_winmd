@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <WdRemoteApiPackageRoot>$(MSBuildThisFileDirectory)..\</WdRemoteApiPackageRoot>
+    <WdRemoteApiIncludeDir>$(WdRemoteApiPackageRoot)native\windows\include\</WdRemoteApiIncludeDir>
+    <WdRemoteApiReferencesDir>$(WdRemoteApiPackageRoot)native\windows\references\</WdRemoteApiReferencesDir>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Platform)' == 'x64'">
+    <WdRemoteApiBinDir>$(WdRemoteApiPackageRoot)native\windows\bin\x64\</WdRemoteApiBinDir>
+    <WdRemoteApiLibDir>$(WdRemoteApiPackageRoot)native\windows\lib\x64\</WdRemoteApiLibDir>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Platform)' == 'ARM64'">
+    <WdRemoteApiBinDir>$(WdRemoteApiPackageRoot)native\windows\bin\arm64\</WdRemoteApiBinDir>
+    <WdRemoteApiLibDir>$(WdRemoteApiPackageRoot)native\windows\lib\arm64\</WdRemoteApiLibDir>
+  </PropertyGroup>
+
+  <!-- Add include directories -->
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(WdRemoteApiIncludeDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
+</Project>
