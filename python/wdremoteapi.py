@@ -19,16 +19,35 @@ from ctypes import (
 # HRESULT helpers
 # ---------------------------------------------------------------------------
 
+# Remote Iteration API-specific error codes and their descriptions.
+_WD_ERRORS: dict[int, tuple[str, str]] = {
+    0x8C114008: ("E_CLIENTNOTAUTHORIZED",  "Device rejected this client. Complete PIN pairing first."),
+    0x8C114009: ("E_SERVERNOTAUTHORIZED",  "Client rejected the device. Complete PIN pairing first."),
+    0x8C114011: ("E_SERVERTOOOLD",         "Server version is too old. Update wdEndpoint on the remote device."),
+    0x8C114012: ("E_NAMERESOLUTIONFAILED", "Could not resolve the remote hostname. Check DNS or use an IP address."),
+    0x8C114013: ("E_INVALIDADDRESS",       "Invalid or malformed address. Confirm the IP is correct IPv4."),
+    0x8C114014: ("E_CONNECTIONERROR",      "Network connection failed. Check connectivity and firewall rules."),
+    0x8C114016: ("E_ADMIN_REQUIRED",       "Administrator privileges required. Re-run the endpoint as Administrator."),
+}
+
 def SUCCEEDED(hr: int) -> bool:
     return (hr & 0xFFFFFFFF) <= 0x7FFFFFFF
 
 def FAILED(hr: int) -> bool:
     return not SUCCEEDED(hr)
 
+def hresult_message(hr: int) -> str:
+    """Return a human-readable description for an HRESULT value."""
+    code = hr & 0xFFFFFFFF
+    if code in _WD_ERRORS:
+        name, description = _WD_ERRORS[code]
+        return f"0x{code:08X} ({name}): {description}"
+    return f"0x{code:08X}"
+
 def check_hr(hr: int, fn_name: str = "API call") -> int:
-    """Raise OSError if hr indicates failure; otherwise return hr."""
+    """Raise OSError with a readable message if hr indicates failure; otherwise return hr."""
     if FAILED(hr):
-        raise OSError(f"{fn_name} failed with HRESULT 0x{hr & 0xFFFFFFFF:08X}")
+        raise OSError(f"{fn_name} failed: {hresult_message(hr)}")
     return hr
 
 # ---------------------------------------------------------------------------

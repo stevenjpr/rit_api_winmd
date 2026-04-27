@@ -17,8 +17,8 @@ from wdremoteapi import WdRemoteApi, check_hr
 # ---------------------------------------------------------------------------
 
 REMOTE_DEVICE    = "192.168.1.100"          # IP or hostname of your Handheld
-SOURCE_PATH      = r"C:\path\to\source"     # File or folder on this PC
-DESTINATION_PATH = r"C:\Games\MyGame"       # Destination path on the Handheld
+SOURCE_PATH      = r"C:\path\to\source"     # Directory on this PC to copy
+DESTINATION_PATH = r"C:\Games\MyGame"       # Destination directory on the Handheld (absolute path)
 
 # ---------------------------------------------------------------------------
 # Locate the DLL relative to this script (repo-root\packages\...\x64)
