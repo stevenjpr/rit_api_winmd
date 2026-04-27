@@ -3,7 +3,7 @@
   <dc:creator>Microsoft</dc:creator>
   <dc:description>Remote Windows Development API for Xbox PC Gaming Device Tools</dc:description>
   <dc:identifier>Microsoft.GDK.RemoteIterationClientApi</dc:identifier>
-  <version>0.1.0-preview.26.3.6001</version>
+  <version>0.1.1-preview.26.3.27002</version>
   <keywords>Microsoft Gaming RemoteDebugging RemoteIteration Cpp Windows Xbox Handheld</keywords>
   <lastModifiedBy>NuGet, Version=6.4.0.123, Culture=neutral, PublicKeyToken=31bf3856ad364e35;Microsoft Windows NT 10.0.20348.0;.NET Framework 4.7.2</lastModifiedBy>
 </coreProperties>

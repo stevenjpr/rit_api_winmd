@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/10/nuspec.xsd">
   <metadata>
     <id>Microsoft.GDK.RemoteIterationClientApi</id>
-    <version>0.1.0-preview.26.3.6001</version>
+    <version>0.1.1-preview.26.3.27002</version>
     <title>Microsoft GDK Remote Iteration Client API</title>
     <authors>Microsoft</authors>
     <owners>Microsoft</owners>

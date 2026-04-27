@@ -47,6 +47,8 @@ The NuGet package automatically configures include paths and library references 
 
 This project is licensed under the MIT License - see the LICENSE file for details.
 
+The Remote Windows Development API is also subject to the public [GDK EULA](https://github.com/microsoft/GDK/blob/Main/LICENSE-EN-US.MD) as it contains terms covering the telemetry data.
+
 ## Versioning
 The RIT API follows semantic versioning 2.0 (MAJOR.MINOR.PATCH):
 
