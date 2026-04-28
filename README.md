@@ -1,6 +1,14 @@
 # Remote Iteration API Samples
 
-Sample programs in multiple languages that call the [Remote Iteration API](https://learn.microsoft.com/en-us/gaming/gdk/docs/reference/remoting/remoteiteration_members?view=gdk-2510) — a Windows API for copying files to and launching executables on a remote Windows device, designed for game development workflows.
+Sample programs in multiple languages demonstrating the [Xbox PC Remote Iteration API](https://learn.microsoft.com/en-us/gaming/gdk/docs/reference/remoting/remoteiteration_members?view=gdk-2510) — a C-based API that lets you programmatically deploy, launch, and manage PC game builds on remote Windows devices as part of your development workflow.
+
+Key capabilities include:
+- **Delta file transfer** — copy game files between a local dev PC and a remote Windows device, transferring only changed files to minimize iteration time
+- **Process lifecycle management** — launch, suspend, resume, and terminate game processes on the remote device
+- **Game registration** — register games for remote execution
+- **CI/automation friendly** — integrate into custom studio tools and automated deploy–launch–test pipelines
+
+The API is intended for development and testing scenarios. One endpoint must always be the local development PC. See the [public preview announcement](https://developer.microsoft.com/en-us/games/articles/2026/04/xbox-pc-remote-iteration-api-public-preview/) for full details.
 
 ## NuGet Package
 
@@ -27,9 +35,3 @@ The package is checked in to the `packages/` directory in this repo so samples r
 | `csharp/` | C# | See the [Xbox-GDK-Samples reference on GitHub](https://github.com/microsoft/Xbox-GDK-Samples/tree/main/Samples/Tools/RemoteIterationToolsSample) |
 
 Each directory has its own `README.md` with setup and configuration instructions.
-
-## What the API Does
-
-- **Copy files** to or from a remote device (delta-aware — only changed files are transferred)
-- **Launch, resume, and terminate** a game executable on the remote device
-- **Register** an Xbox game on the remote device
