@@ -11,7 +11,11 @@ Before running:
 import ctypes
 import os
 import sys
-from wdremoteapi import WdRemoteApi, check_hr
+from wdremoteapi import (
+    WdRemoteApi, WdCopyStatusCallbacks,
+    WdCopyFilesStatusCallback, WdCopyErrorCallback,
+    WdCopyErrorSeverity, check_hr,
+)
 
 # ---------------------------------------------------------------------------
 # Configuration — edit these values before running
@@ -23,6 +27,59 @@ DESTINATION_PATH = r"SimpleTriangleDesktop"       # Destination directory on the
 
 # Full path to the executable on the Handheld (under the common root, e.g. "SimpleTriangleDesktop\SimpleTriangleDesktop.exe")
 REMOTE_EXE_PATH  = r"SimpleTriangleDesktop\SimpleTriangleDesktop.exe"
+
+# ---------------------------------------------------------------------------
+# Progress helpers
+# ---------------------------------------------------------------------------
+
+def _fmt_bytes(n: int) -> str:
+    """Format a byte count as a human-readable string."""
+    for unit in ("B", "KB", "MB", "GB"):
+        if n < 1024 or unit == "GB":
+            return f"{n:.1f} {unit}"
+        n /= 1024
+
+
+@WdCopyFilesStatusCallback
+def _on_copy_progress(file_progress_count, file_updates, copy_summary, _ctx):
+    """Called periodically by WdRemoteCopy with per-file and overall progress."""
+    s = copy_summary.contents
+    total_files = s.totalFileCount
+    done_files  = s.filesCompletedCount
+    total_bytes = s.totalByteCount
+    done_bytes  = s.bytesTransferredCount
+
+    # Overall progress bar (40 chars wide)
+    pct   = (done_bytes / total_bytes * 100) if total_bytes else 0
+    bar_w = 40
+    filled = int(bar_w * pct / 100)
+    bar = "#" * filled + "-" * (bar_w - filled)
+
+    # Active file (last entry in the per-file array, if any)
+    active = ""
+    if file_progress_count > 0:
+        f = file_updates[file_progress_count - 1]
+        name = (f.relativeFilePath or b"").decode(errors="replace")
+        active = f"  {name} ({_fmt_bytes(f.bytesTransferred)}/{_fmt_bytes(f.fileSize)})"
+
+    print(
+        f"\r[{bar}] {pct:5.1f}%  "
+        f"{done_files}/{total_files} files  "
+        f"{_fmt_bytes(done_bytes)}/{_fmt_bytes(total_bytes)}"
+        f"{active:<60}",
+        end="", flush=True,
+    )
+    return 0  # S_OK — continue the copy
+
+
+@WdCopyErrorCallback
+def _on_copy_error(severity, message, error, _ctx):
+    """Called by WdRemoteCopy when a warning or error occurs during the copy."""
+    label = "WARNING" if severity == WdCopyErrorSeverity.Warning else "ERROR"
+    msg   = (message or b"").decode(errors="replace")
+    print(f"\n[{label}] {msg} (hr=0x{error & 0xFFFFFFFF:08X})")
+    return 0  # S_OK — let the copy continue
+
 
 # ---------------------------------------------------------------------------
 # Locate the DLL relative to this script (repo-root\packages\...\x64)
@@ -58,15 +115,23 @@ def main():
     print(f"Destination   : {DESTINATION_PATH}")
     print("\nStarting copy...")
 
+    callbacks = WdCopyStatusCallbacks(
+        copyFilesStatusCallback = _on_copy_progress,
+        refreshRateMs           = 250,    # update ~4 times/sec
+        copyErrorCallback       = _on_copy_error,
+        context                 = None,
+    )
+
     hr = api.WdRemoteCopy(
         REMOTE_DEVICE.encode(),     # remote device address
         SOURCE_PATH.encode(),       # source on this PC
         DESTINATION_PATH.encode(),  # destination on the Handheld
-        None,                       # copyOptions:      default (CopyTo, default root)
-        None,                       # searchOptions:    copy all files
-        None,                       # statusCallbacks:  no progress reporting yet
+        None,                       # copyOptions:   default (CopyTo, default root)
+        None,                       # searchOptions: copy all files
+        ctypes.byref(callbacks),    # statusCallbacks: progress + error reporting
         None,                       # cancellationHandle: not used
     )
+    print()  # newline after the progress bar
     check_hr(hr, "WdRemoteCopy")
     print("Copy completed successfully.\n")
 
