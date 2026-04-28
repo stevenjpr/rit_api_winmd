@@ -8,7 +8,7 @@ wraps `wdremoteapi.dll` using inline C# P/Invoke compiled at import time with `A
 - PowerShell 7.2 or later (`pwsh`)
 - Windows 11, x64 or ARM64
 - Remote device paired with this PC via Xbox PC Toolbox
-- `wdEndpoint` running on the remote device
+- `wdEndpoint` running on the remote device — see [Remote Game Dev Tools](https://learn.microsoft.com/en-us/gaming/gdk/docs/gdk-dev/pc-dev/overviews/remote-gamedev-tools?view=gdk-2604)
 
 ## Configuration
 

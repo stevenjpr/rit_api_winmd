@@ -7,7 +7,7 @@ Calls the Remote Iteration API to copy files to a remote Handheld device and lau
 - Python 3.9 or later
 - A virtual environment (recommended): the `python/` directory includes a `.venv` setup
 - Remote device paired with this PC via Xbox PC Toolbox
-- `wdEndpoint` running on the remote device
+- `wdEndpoint` running on the remote device — see [Remote Game Dev Tools](https://learn.microsoft.com/en-us/gaming/gdk/docs/gdk-dev/pc-dev/overviews/remote-gamedev-tools?view=gdk-2604)
 
 ## Setup
 

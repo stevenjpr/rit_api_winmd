@@ -7,7 +7,7 @@ a pre-built FFI library that requires no native compilation.
 
 - Node.js 18 or later (v22 recommended)
 - Remote device paired with this PC via Xbox PC Toolbox
-- `wdEndpoint` running on the remote device
+- `wdEndpoint` running on the remote device — see [Remote Game Dev Tools](https://learn.microsoft.com/en-us/gaming/gdk/docs/gdk-dev/pc-dev/overviews/remote-gamedev-tools?view=gdk-2604)
 
 ## Setup
 
