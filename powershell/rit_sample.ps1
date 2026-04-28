@@ -9,18 +9,18 @@
 #region --- Configuration ---
 
 # IP address or hostname of the remote Handheld device.
-$REMOTE_DEVICE = '192.168.1.10'
+$REMOTE_DEVICE = '192.168.0.6'
 
 # Local directory to deploy to the remote device.
-$SOURCE_PATH = 'C:\MyGame'
+$SOURCE_PATH = 'C:\rit\SimpleTriangleDesktop\Samples\IntroGraphics\SimpleTriangleDesktop\x64\Debug'
 
 # Destination folder name on the remote device.
 # A relative path is resolved against the device's default common root
 # (C:\ProgramData\Microsoft GDK\gameroot by default).
-$DESTINATION_PATH = 'MyGame'
+$DESTINATION_PATH = 'SimpleTriangleDesktop'
 
 # Path to the game executable on the remote device (relative to common root).
-$REMOTE_EXE = 'MyGame\game.exe'
+$REMOTE_EXE = 'SimpleTriangleDesktop\SimpleTriangleDesktop.exe'
 
 #endregion
 
