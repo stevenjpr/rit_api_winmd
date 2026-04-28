@@ -87,6 +87,37 @@ namespace RitApi {
         public IntPtr commonRootAlias; // UTF-8 const char*, or Zero
     }
 
+    [StructLayout(LayoutKind.Sequential)]
+    public struct WdCopyFileProgressInfo {
+        public IntPtr relativeFilePath; // UTF-8 char* — path relative to destination root
+        public IntPtr sourcePath;       // UTF-8 char*
+        public IntPtr destinationPath;  // UTF-8 char*
+        public ulong  bytesTransferred;
+        public ulong  fileSize;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct WdCopyOperationSummary {
+        public ulong filesCompletedCount;
+        public ulong bytesTransferredCount;
+        public ulong totalFileCount;
+        public ulong totalByteCount;
+    }
+
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    public delegate int WdCopyFilesStatusDelegate(
+        UIntPtr fileProgressCount,
+        IntPtr  fileUpdates,   // WdCopyFileProgressInfo[]
+        IntPtr  copyUpdates,   // WdCopyOperationSummary*
+        IntPtr  context);
+
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    public delegate int WdCopyErrorDelegate(
+        uint   severity,  // 0=Warning, 1=Error
+        IntPtr message,   // UTF-8 char*
+        int    error,     // HRESULT
+        IntPtr context);
+
     public static class WdNative {
 
         // Only one WdRemoteCopy may be active at a time across all callers.
@@ -240,6 +271,77 @@ namespace RitApi {
             Marshal.Copy(new byte[size], 0, ptr, size);
             return ptr;
         }
+
+        public static IntPtr AllocStatusCallbacks(IntPtr progressFnPtr, IntPtr errorFnPtr, uint refreshMs) {
+            int    size = Marshal.SizeOf<WdCopyStatusCallbacks>();
+            IntPtr ptr  = Alloc(size);
+            var s = new WdCopyStatusCallbacks {
+                copyFilesStatusCallback = progressFnPtr,
+                refreshRateMs           = refreshMs,
+                copyErrorCallback       = errorFnPtr,
+                context                 = IntPtr.Zero
+            };
+            Marshal.StructureToPtr(s, ptr, false);
+            return ptr;
+        }
+
+        public static void FreeStatusCallbacks(IntPtr ptr) {
+            if (ptr == IntPtr.Zero) return;
+            Marshal.FreeHGlobal(ptr);
+        }
+    }
+
+    // Formats and writes copy progress directly to the console.
+    // Console.Write is thread-safe and works regardless of which thread the DLL invokes the callback on.
+    public static class CopyProgressHandler {
+
+        // Static fields hold the delegate instances to prevent GC collection while WdRemoteCopy runs.
+        public static readonly WdCopyFilesStatusDelegate ProgressCallback = OnProgress;
+        public static readonly WdCopyErrorDelegate       ErrorCallback    = OnError;
+
+        private static int OnProgress(UIntPtr fileProgressCount, IntPtr fileUpdates, IntPtr copyUpdates, IntPtr _ctx) {
+            try {
+                var    s   = Marshal.PtrToStructure<WdCopyOperationSummary>(copyUpdates);
+                double pct = s.totalByteCount > 0 ? (double)s.bytesTransferredCount / s.totalByteCount * 100.0 : 0.0;
+
+                string active = "";
+                ulong  cnt    = fileProgressCount.ToUInt64();
+                if (cnt > 0) {
+                    int    stride = Marshal.SizeOf<WdCopyFileProgressInfo>();
+                    IntPtr fPtr   = IntPtr.Add(fileUpdates, (int)(cnt - 1) * stride);
+                    var    f      = Marshal.PtrToStructure<WdCopyFileProgressInfo>(fPtr);
+                    string name   = f.relativeFilePath != IntPtr.Zero
+                                        ? Marshal.PtrToStringUTF8(f.relativeFilePath) : "";
+                    active = $"  {name} ({FmtBytes(f.bytesTransferred)}/{FmtBytes(f.fileSize)})";
+                }
+
+                int    filled = (int)(pct / 100.0 * 40);
+                string bar    = new string('#', filled) + new string('-', 40 - filled);
+                string line   = $"\r[{bar}] {pct,5:F1}%  " +
+                                $"{s.filesCompletedCount}/{s.totalFileCount} files  " +
+                                $"{FmtBytes(s.bytesTransferredCount)}/{FmtBytes(s.totalByteCount)}" +
+                                $"{active,-60}";
+                Console.Write(line);
+            } catch { }
+            return 0;
+        }
+
+        private static int OnError(uint severity, IntPtr message, int error, IntPtr _ctx) {
+            try {
+                string label = (severity == 0) ? "WARNING" : "ERROR";
+                string msg   = message != IntPtr.Zero ? Marshal.PtrToStringUTF8(message) : "";
+                Console.WriteLine($"\n[{label}] {msg} (hr=0x{(uint)error:X8})");
+            } catch { }
+            return 0;
+        }
+
+        private static string FmtBytes(ulong n) {
+            string[] units = { "B", "KB", "MB", "GB" };
+            double   v     = (double)n;
+            int      i     = 0;
+            while (v >= 1024.0 && i < units.Length - 1) { v /= 1024.0; i++; }
+            return $"{v:F1} {units[i]}";
+        }
     }
 }
 '@
@@ -360,6 +462,7 @@ function Copy-RitFiles {
 
     $copyOptsPtr   = [IntPtr]::Zero
     $searchOptsPtr = [IntPtr]::Zero
+    $callbacksPtr  = [IntPtr]::Zero
 
     try {
         if ($Direction -eq 'CopyFrom' -or $CommonRootAlias) {
@@ -372,17 +475,25 @@ function Copy-RitFiles {
                 $IncludeFilePattern, $ExcludeFilePattern, $ExcludeDirPattern)
         }
 
+        $progressPtr = [System.Runtime.InteropServices.Marshal]::GetFunctionPointerForDelegate(
+            [RitApi.CopyProgressHandler]::ProgressCallback)
+        $errorPtr = [System.Runtime.InteropServices.Marshal]::GetFunctionPointerForDelegate(
+            [RitApi.CopyProgressHandler]::ErrorCallback)
+        $callbacksPtr = [RitApi.StructAlloc]::AllocStatusCallbacks($progressPtr, $errorPtr, 250)
+
         Write-Verbose "Copying '$SourcePath' -> ${RemoteDevice}:'$DestinationPath' ..."
         $hr = [RitApi.WdNative]::RemoteCopy(
             $RemoteDevice, $SourcePath, $DestinationPath,
-            $copyOptsPtr, $searchOptsPtr, [IntPtr]::Zero)
+            $copyOptsPtr, $searchOptsPtr, $callbacksPtr)
 
+        [Console]::WriteLine()  # newline after the progress bar
         Assert-HResult $hr 'Copy-RitFiles'
         Write-Verbose 'Copy completed successfully.'
     }
     finally {
         [RitApi.StructAlloc]::FreeCopyOptions($copyOptsPtr)
         [RitApi.StructAlloc]::FreeSearchOptions($searchOptsPtr)
+        [RitApi.StructAlloc]::FreeStatusCallbacks($callbacksPtr)
     }
 }
 
