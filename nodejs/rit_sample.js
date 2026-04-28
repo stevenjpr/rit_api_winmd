@@ -16,6 +16,8 @@ const {
     WdCopyStatusCallbacks,
     WdCopyFilesStatusProto,
     WdCopyErrorProto,
+    WdCopyFileProgressInfo,
+    WdCopyOperationSummary,
     WdCopyErrorSeverity,
     checkHr,
     dllPath,
@@ -47,18 +49,21 @@ function fmtBytes(n) {
 // garbage-collected while WdRemoteCopy is running.
 const _progressCallback = koffi.register(
     function onCopyProgress(count, updates, summary, _ctx) {
-        const s        = summary[0];
-        const total    = Number(s.totalByteCount);
-        const done     = Number(s.bytesTransferredCount);
-        const pct      = total > 0 ? done / total * 100 : 0;
-        const filled   = Math.floor(pct / 100 * 40);
-        const bar      = '#'.repeat(filled) + '-'.repeat(40 - filled);
+        // koffi delivers pointer params as opaque external pointers — use koffi.decode() to read them.
+        const s      = koffi.decode(summary, WdCopyOperationSummary);
+        const total  = Number(s.totalByteCount);
+        const done   = Number(s.bytesTransferredCount);
+        const pct    = total > 0 ? done / total * 100 : 0;
+        const filled = Math.floor(pct / 100 * 40);
+        const bar    = '#'.repeat(filled) + '-'.repeat(40 - filled);
 
         let active = '';
-        if (count > 0) {
-            const f    = updates[count - 1];
-            const name = f.relativeFilePath || '';
-            active     = `  ${name} (${fmtBytes(f.bytesTransferred)}/${fmtBytes(f.fileSize)})`;
+        const n = Number(count);
+        if (n > 0) {
+            const stride = koffi.sizeof(WdCopyFileProgressInfo);
+            const f      = koffi.decode(updates, WdCopyFileProgressInfo, (n - 1) * stride);
+            const name   = f.relativeFilePath || '';
+            active       = `  ${name} (${fmtBytes(f.bytesTransferred)}/${fmtBytes(f.fileSize)})`;
         }
 
         const line = `\r[${bar}] ${pct.toFixed(1).padStart(5)}%  ` +
