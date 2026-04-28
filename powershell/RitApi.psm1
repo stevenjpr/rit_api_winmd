@@ -121,7 +121,7 @@ namespace RitApi {
             }
         }
 
-        [DllImport("wdremoteapi.dll", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport("wdremoteapi.dll", CallingConvention = CallingConvention.Cdecl, EntryPoint = "WdRemoteCopy")]
         private static extern int WdRemoteCopyRaw(
             [MarshalAs(UnmanagedType.LPUTF8Str)] string device,
             [MarshalAs(UnmanagedType.LPUTF8Str)] string source,
