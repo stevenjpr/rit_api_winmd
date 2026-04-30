@@ -146,18 +146,36 @@ export function activate(context: vscode.ExtensionContext): void {
     _output = vscode.window.createOutputChannel('Remote Iteration');
     context.subscriptions.push(_output);
 
-    // Load the native DLL now that we have extensionPath.
+    // Attempt DLL load at activation — log result but don't block command registration.
+    // Commands will re-attempt the load (no-op if already loaded) and show a clear error
+    // if the packages/ folder is missing.
     try {
         rit.loadLibrary(context.extensionPath);
         _output.appendLine(`DLL loaded: ${rit.dllPath}`);
     } catch (e) {
-        vscode.window.showErrorMessage(`Remote Iteration Tools: Failed to load DLL — ${e}`);
-        return;
+        _output.appendLine(`Warning: Failed to load wdremoteapi.dll — ${e}`);
+        _output.appendLine(`Make sure the packages/ folder is present inside vscode-extension/.`);
+        _output.show(true);
+    }
+
+    function ensureLoaded(): boolean {
+        if (rit.dllPath) return true;
+        try {
+            rit.loadLibrary(context.extensionPath);
+            return true;
+        } catch (e) {
+            vscode.window.showErrorMessage(
+                `Remote Iteration Tools: Failed to load wdremoteapi.dll — ${e}. ` +
+                `Run: robocopy ..\\packages packages /E  from the vscode-extension/ folder, then retry.`
+            );
+            return false;
+        }
     }
 
     // rit.deploy
     context.subscriptions.push(
         vscode.commands.registerCommand('rit.deploy', async () => {
+            if (!ensureLoaded()) return;
             const cfg = getConfig();
             const err = validateConfig(cfg);
             if (err) { vscode.window.showErrorMessage(err); return; }
@@ -184,6 +202,7 @@ export function activate(context: vscode.ExtensionContext): void {
     // rit.launch
     context.subscriptions.push(
         vscode.commands.registerCommand('rit.launch', () => {
+            if (!ensureLoaded()) return;
             const cfg = getConfig();
             const err = validateConfig(cfg, true);
             if (err) { vscode.window.showErrorMessage(err); return; }
@@ -204,6 +223,7 @@ export function activate(context: vscode.ExtensionContext): void {
     // rit.deployAndLaunch
     context.subscriptions.push(
         vscode.commands.registerCommand('rit.deployAndLaunch', async () => {
+            if (!ensureLoaded()) return;
             const cfg = getConfig();
             const err = validateConfig(cfg, true);
             if (err) { vscode.window.showErrorMessage(err); return; }
