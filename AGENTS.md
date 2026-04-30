@@ -109,4 +109,6 @@ Node.js (koffi)
 - koffi returns uint64 struct fields as JS BigInt — convert with Number() before math.
 - Use koffi.register(fn, koffi.pointer(proto)) to create a native callback from a JS function.
   Hold the returned handle in a module-scope variable to prevent GC during the copy.
+- koffi.struct() returns a type descriptor for marshaling, NOT a constructor.
+  Struct instances are plain JS objects: { field: value, ... }. Do NOT use new StructType().
 
