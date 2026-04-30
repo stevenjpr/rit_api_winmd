@@ -1,0 +1,73 @@
+{
+  "name": "rit-tools",
+  "displayName": "Remote Iteration Tools",
+  "description": "Deploy files and launch games on a remote Windows device via the Xbox PC Remote Iteration API.",
+  "version": "0.1.0",
+  "publisher": "rit-tools",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "rit.deploy",
+        "title": "RIT: Deploy Files to Remote Device"
+      },
+      {
+        "command": "rit.launch",
+        "title": "RIT: Launch Game on Remote Device"
+      },
+      {
+        "command": "rit.deployAndLaunch",
+        "title": "RIT: Deploy and Launch on Remote Device"
+      }
+    ],
+    "configuration": {
+      "title": "Remote Iteration Tools",
+      "properties": {
+        "rit.remoteDevice": {
+          "type": "string",
+          "default": "",
+          "description": "IP address or hostname of the remote device."
+        },
+        "rit.sourcePath": {
+          "type": "string",
+          "default": "",
+          "description": "Local directory path to deploy."
+        },
+        "rit.destinationPath": {
+          "type": "string",
+          "default": "",
+          "description": "Destination path on the remote device."
+        },
+        "rit.remoteExePath": {
+          "type": "string",
+          "default": "",
+          "description": "Path to the game executable on the remote device."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "lint": "eslint src --ext ts"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/vscode": "^1.85.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "eslint": "^8.0.0",
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "koffi": "^2.9.0"
+  }
+}
