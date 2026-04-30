@@ -44,7 +44,8 @@ npm install
 npm run compile
 ```
 
-Or use `npm run watch` to rebuild on every file change.
+> **Note:** The build copies `src/wdremoteapi.js` to `out/` in addition to compiling TypeScript.
+> If you modify `wdremoteapi.js`, re-run `npm run compile` (the `watch` task only recompiles `.ts` files).
 
 ---
 
