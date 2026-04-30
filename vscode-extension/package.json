@@ -10,7 +10,11 @@
   "categories": [
     "Other"
   ],
-  "activationEvents": [],
+  "activationEvents": [
+    "onCommand:rit.deploy",
+    "onCommand:rit.launch",
+    "onCommand:rit.deployAndLaunch"
+  ],
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
