@@ -51,9 +51,10 @@ function fmtBytes(n: number): string {
 async function deployFiles(cfg: ReturnType<typeof getConfig>): Promise<void> {
     const api = new rit.WdRemoteApi();
 
-    const copyOpts = new rit.WdCopyOptions();
-    copyOpts.copyDirection   = rit.WdCopyDirection.CopyTo;
-    copyOpts.commonRootAlias = null;
+    const copyOpts = {
+        copyDirection:   rit.WdCopyDirection.CopyTo,
+        commonRootAlias: null,
+    };
 
     return new Promise<void>((resolve, reject) => {
         // Register progress callback
@@ -86,11 +87,12 @@ async function deployFiles(cfg: ReturnType<typeof getConfig>): Promise<void> {
             koffi.pointer(rit.WdCopyErrorProto)
         );
 
-        const callbacks = new rit.WdCopyStatusCallbacks();
-        callbacks.copyFilesStatusCallback = _progressHandle;
-        callbacks.refreshRateMs           = 250;
-        callbacks.copyErrorCallback       = _errorHandle;
-        callbacks.context                 = null;
+        const callbacks = {
+            copyFilesStatusCallback: _progressHandle,
+            refreshRateMs:           250,
+            copyErrorCallback:       _errorHandle,
+            context:                 null,
+        };
 
         // WdRemoteCopy is blocking — run on a background thread via setImmediate
         // so the VS Code UI stays responsive.
@@ -123,9 +125,10 @@ async function deployFiles(cfg: ReturnType<typeof getConfig>): Promise<void> {
 
 function launchGame(cfg: ReturnType<typeof getConfig>): void {
     const api = new rit.WdRemoteApi();
-    const launchOpts = new rit.WdLaunchOptions();
-    launchOpts.launchMode      = rit.WdLaunchMode.Immediate;
-    launchOpts.commonRootAlias = null;
+    const launchOpts = {
+        launchMode:      rit.WdLaunchMode.Immediate,
+        commonRootAlias: null,
+    };
 
     const { hr, processId, threadId } = api.WdLaunchRemoteGame(
         cfg.device, cfg.remoteExe, null, launchOpts
